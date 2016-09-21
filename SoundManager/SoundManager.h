@@ -60,9 +60,10 @@ extern NSString *const SoundDidFinishPlayingNotification;
 
 
 typedef void (^SoundCompletionHandler)(BOOL didFinish);
+typedef void (^SoundProgressHandler)(double progress);
+typedef void (^SoundStartHandler)();
 
-
-@interface Sound : NSObject
+@interface Sound : NSObject <AVAudioPlayerDelegate>
 
 + (instancetype)soundNamed:(NSString *)name;
 + (instancetype)soundWithContentsOfFile:(NSString *)path;
@@ -77,6 +78,8 @@ typedef void (^SoundCompletionHandler)(BOOL didFinish);
 @property (nonatomic, readonly) NSTimeInterval duration;
 @property (nonatomic, assign) NSTimeInterval currentTime;
 @property (nonatomic, copy) SoundCompletionHandler completionHandler;
+@property (nonatomic, copy) SoundStartHandler startHandler;
+@property (nonatomic, copy) SoundProgressHandler progressHandler;
 @property (nonatomic, assign) float baseVolume;
 @property (nonatomic, assign) float volume;
 @property (nonatomic, assign) float pan;

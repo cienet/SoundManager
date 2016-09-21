@@ -61,6 +61,7 @@ NSString *const SoundDidFinishPlayingNotification = @"SoundDidFinishPlayingNotif
 @property (nonatomic, assign) NSTimeInterval fadeTime;
 @property (nonatomic, assign) NSTimeInterval fadeStart;
 @property (nonatomic, strong) NSTimer *timer;
+@property (nonatomic, strong) NSTimer *progressTimer;
 @property (nonatomic, strong) Sound *selfReference;
 @property (nonatomic, strong) SM_SOUND *sound;
 
@@ -258,6 +259,24 @@ NSString *const SoundDidFinishPlayingNotification = @"SoundDidFinishPlayingNotif
     
 }
 
+- (void)startProgressTimer {
+    [self stopProgressTimer];
+    _progressTimer = [NSTimer scheduledTimerWithTimeInterval:0.2f target:self selector:@selector(progressUpdate) userInfo:nil repeats:YES];
+    [_progressTimer fire];
+}
+
+- (void)progressUpdate {
+    float progress = _sound.currentTime/_sound.duration;
+    self.progressHandler(progress);
+}
+
+- (void)stopProgressTimer {
+    if (_progressTimer) {
+        [_progressTimer invalidate];
+        _progressTimer = nil;
+    }
+}
+
 - (BOOL)isPlaying
 {
     return [_sound isPlaying];
@@ -272,15 +291,19 @@ NSString *const SoundDidFinishPlayingNotification = @"SoundDidFinishPlayingNotif
         
         //play sound
         [_sound play];
+        [self startProgressTimer];
+        self.startHandler();
     }
 }
 
 - (void)stop
 {
+    
     if (self.playing)
     {
         //stop playing
         [_sound stop];
+        [self stopProgressTimer];
         
         //stop timer
         [_timer invalidate];
@@ -304,7 +327,7 @@ NSString *const SoundDidFinishPlayingNotification = @"SoundDidFinishPlayingNotif
     //stop timer
     [_timer invalidate];
     self.timer = nil;
-    
+    [self stopProgressTimer];
     //fire events
     if (_completionHandler) _completionHandler(finishedPlaying);
     [[NSNotificationCenter defaultCenter] postNotificationName:SoundDidFinishPlayingNotification object:self];
@@ -579,7 +602,7 @@ NSString *const SoundDidFinishPlayingNotification = @"SoundDidFinishPlayingNotif
 
 - (void)stopAllSounds
 {
-    [self stopAllSounds:YES];
+    [self stopAllSounds:NO];
 }
 
 - (BOOL)isPlayingMusic
